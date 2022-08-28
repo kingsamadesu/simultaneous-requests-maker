@@ -19,6 +19,7 @@ app.get("/", async function (req, res) {
 })
 app.post('/syncRequests', validate(listRequests), async function (req, res) {
   console.log("POST /syncRequests")
+  console.log(req.headers);
   const response = await Promise.all(req.body.requests.map((request) => {
     return axios.request(request);
   }))

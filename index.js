@@ -7,6 +7,12 @@ const {
   listRequests,
 } = require('./request.validation');
 
+const subscriptions = {
+  "BASIC": 10,
+  "PRO": 250,
+  "ULTRA": 1000
+}
+
 var app = express();
 app.use(bodyParser.json());
 
@@ -17,9 +23,17 @@ app.get("/", async function (req, res) {
   console.log("GET /")
   res.send({});
 })
-app.post('/syncRequests', validate(listRequests), async function (req, res) {
+app.post('/syncRequests', validate(listRequests), async function (req, res, next) {
   console.log("POST /syncRequests")
   console.log(req.headers);
+  const subscription = req.header('x-rapidapi-subscription');
+  if (!subscription) {
+    next(new Error("Subscription Header Not Found"))
+  }
+  const maxConccrency = subscriptions[subscription];
+  if (req.body.requests.length >= maxConccrency) {
+    next(new Error("Max Concurrency Exceeded"))
+  }
   const response = await Promise.all(req.body.requests.map((request) => {
     return axios.request(request);
   }))
@@ -29,6 +43,10 @@ app.post('/syncRequests', validate(listRequests), async function (req, res) {
 app.use(function (err, req, res, next) {
   if (err instanceof validate.ValidationError) {
     return res.status(err.status).json(err)
+  }
+  console.log(err)
+  if ((err.message.localeCompare("Max Concurrency Exceeded") == 0) || (err.message.localeCompare("Subscription header Not Found") == 0)) {
+    return res.status(500).json({ status: 501, message: err.message })
   }
   return res.status(500).json(err)
 })

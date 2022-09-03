@@ -12,8 +12,7 @@ const subscriptions = {
   "PRO": 250,
   "ULTRA": 1000,
   "ULTRA": 10000,
-}
-
+};
 var app = express();
 app.use(bodyParser.json());
 

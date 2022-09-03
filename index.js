@@ -10,7 +10,8 @@ const {
 const subscriptions = {
   "BASIC": 10,
   "PRO": 250,
-  "ULTRA": 1000
+  "ULTRA": 1000,
+  "ULTRA": 10000,
 }
 
 var app = express();
@@ -28,11 +29,11 @@ app.post('/syncRequests', validate(listRequests), async function (req, res, next
   console.log(req.headers);
   const subscription = req.header('x-rapidapi-subscription');
   if (!subscription) {
-    next(new Error("Subscription Header Not Found"))
+    next(new Error("Subscription Header Not Found"));
   }
   const maxConccrency = subscriptions[subscription];
   if (req.body.requests.length >= maxConccrency) {
-    next(new Error("Max Concurrency Exceeded"))
+    next(new Error("Max Concurrency Exceeded"));
   }
   const response = await Promise.all(req.body.requests.map((request) => {
     return axios.request(request);
